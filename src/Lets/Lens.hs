@@ -114,35 +114,21 @@ over t f = getIdentity . t (Identity . f)
 
 -- | Here is @fmapT@ again, passing @traverse@ to @over@.
 fmapTAgain :: Traversable t => (a -> b) -> t a -> t b
-fmapTAgain = error "todo: fmapTAgain"
+fmapTAgain = over traverse
 
 -- | Let's create a type-alias for this type of function.
-type Set s t a b =
-  (a -> Identity b)
-  -> s
-  -> Identity t
+type Set s t a b = (a -> Identity b) -> s -> Identity t
 
 -- | Let's write an inverse to @over@ that does the @Identity@ wrapping &
 -- unwrapping.
-sets ::
-  ((a -> b) -> s -> t)
-  -> Set s t a b  
-sets =
-  error "todo: sets"
+sets :: ((a -> b) -> s -> t) -> Set s t a b
+sets f g s = Identity $ f (getIdentity . g) s
 
-mapped ::
-  Functor f =>
-  Set (f a) (f b) a b
-mapped =
-  error "todo: mapped"
+mapped :: Functor f => Set (f a) (f b) a b
+mapped g h = Identity $ getIdentity . g <$> h
 
-set ::
-  Set s t a b
-  -> s
-  -> b
-  -> t
-set =
-  error "todo: set"
+set :: Set s t a b -> s -> b -> t
+set f s b = getIdentity $ f (Identity . const b) s
 
 ----
 
