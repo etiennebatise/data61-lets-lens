@@ -105,31 +105,16 @@ import Prelude hiding (product)
 -- | Observe that @fmap@ can be recovered from @traverse@ using @Identity@.
 --
 -- /Reminder:/ fmap :: Functor t => (a -> b) -> t a -> t b
-fmapT ::
-  Traversable t =>
-  (a -> b)
-  -> t a
-  -> t b
-fmapT =
-  error "todo: fmapT"
+fmapT :: Traversable t => (a -> b) -> t a -> t b
+fmapT f = getIdentity . traverse (Identity . f)
 
 -- | Let's refactor out the call to @traverse@ as an argument to @fmapT@.
-over :: 
-  ((a -> Identity b) -> s -> Identity t)
-  -> (a -> b)
-  -> s
-  -> t
-over =
-  error "todo: over"
+over :: ((a -> Identity b) -> s -> Identity t) -> (a -> b) -> s -> t
+over t f = getIdentity . t (Identity . f)
 
 -- | Here is @fmapT@ again, passing @traverse@ to @over@.
-fmapTAgain ::
-  Traversable t =>
-  (a -> b)
-  -> t a
-  -> t b
-fmapTAgain =
-  error "todo: fmapTAgain"
+fmapTAgain :: Traversable t => (a -> b) -> t a -> t b
+fmapTAgain = error "todo: fmapTAgain"
 
 -- | Let's create a type-alias for this type of function.
 type Set s t a b =
