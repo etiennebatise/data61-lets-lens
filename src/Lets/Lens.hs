@@ -122,7 +122,7 @@ type Set s t a b = (a -> Identity b) -> s -> Identity t
 -- | Let's write an inverse to @over@ that does the @Identity@ wrapping &
 -- unwrapping.
 sets :: ((a -> b) -> s -> t) -> Set s t a b
-sets f g s = Identity $ f (getIdentity . g) s
+sets f g = Identity . f (getIdentity . g)
 
 mapped :: Functor f => Set (f a) (f b) a b
 mapped g h = Identity $ getIdentity . g <$> h
@@ -136,11 +136,11 @@ set f s b = getIdentity $ f (Identity . const b) s
 --
 -- /Reminder:/ foldMap :: (Foldable t, Monoid b) => (a -> b) -> t a -> b
 foldMapT :: (Traversable t, Monoid b) => (a -> b) -> t a -> b
-foldMapT f a = getConst $ traverse (Const . f) a
+foldMapT f = getConst . traverse (Const . f)
 
 -- | Let's refactor out the call to @traverse@ as an argument to @foldMapT@.
 foldMapOf :: ((a -> Const r b) -> s -> Const r t) -> (a -> r) -> s -> r
-foldMapOf t g s = getConst $ t (Const . g) s
+foldMapOf t g = getConst . t (Const . g)
 
 
 -- | Here is @foldMapT@ again, passing @traverse@ to @foldMapOf@.
@@ -154,10 +154,10 @@ type Fold s t a b = forall r. Monoid r => (a -> Const r b) -> s -> Const r t
 -- | Let's write an inverse to @foldMapOf@ that does the @Const@ wrapping &
 -- unwrapping.
 folds :: ((a -> b) -> s -> t) -> (a -> Const b a) -> s -> Const t s
-folds t g s = Const $ t (getConst . g) s
+folds t g = Const . t (getConst . g)
 
 folded :: Foldable f => Fold (f a) (f a) a a
-folded g f_a = Const $ foldMap (getConst . g) f_a
+folded g = Const . foldMap (getConst . g)
 
 ----
 
