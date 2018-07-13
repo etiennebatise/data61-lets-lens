@@ -170,33 +170,24 @@ get g s = getConst $ g Const s
 ----
 
 -- | Let's generalise @Identity@ and @Const r@ to any @Applicative@ instance.
-type Traversal s t a b =
-  forall f.
-  Applicative f =>
-  (a -> f b)
-  -> s
-  -> f t
+type Traversal s t a b = forall f. Applicative f => (a -> f b) -> s -> f t
 
 -- | Traverse both sides of a pair.
-both ::
-  Traversal (a, a) (b, b) a b
-both =
-  error "todo: both"
+both :: Traversal (a, a) (b, b) a b
+both g (a1, a2) = (,) <$> g a1 <*> g a2
 
 -- | Traverse the left side of @Either@.
-traverseLeft ::
-  Traversal (Either a x) (Either b x) a b
-traverseLeft =
-  error "todo: traverseLeft"
+traverseLeft :: Traversal (Either a x) (Either b x) a b
+-- traverseLeft = error "todo: traverseLeft"
+traverseLeft f (Left a) = Left <$> f a
+traverseLeft _ (Right x) = pure $ Right x
 
 -- | Traverse the right side of @Either@.
-traverseRight ::
-  Traversal (Either x a) (Either x b) a b
-traverseRight =
-  error "todo: traverseRight"
+traverseRight :: Traversal (Either x a) (Either x b) a b
+traverseRight f (Right a) = Right <$> f a
+traverseRight _ (Left x) = pure $ Left x
 
-type Traversal' a b =
-  Traversal a a b b
+type Traversal' a b = Traversal a a b b
 
 ----
 
