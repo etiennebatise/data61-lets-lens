@@ -97,7 +97,7 @@ import Prelude hiding (product)
 --
 -- class (Foldable t, Functor t) => Traversable t where
 --   traverse ::
---     Applicative f => 
+--     Applicative f =>
 --     (a -> f b)
 --     -> t a
 --     -> f (t b)
@@ -135,55 +135,29 @@ set f s b = getIdentity $ f (Identity . const b) s
 -- | Observe that @foldMap@ can be recovered from @traverse@ using @Const@.
 --
 -- /Reminder:/ foldMap :: (Foldable t, Monoid b) => (a -> b) -> t a -> b
-foldMapT ::
-  (Traversable t, Monoid b) =>
-  (a -> b)
-  -> t a
-  -> b
-foldMapT =
-  error "todo: foldMapT"
+foldMapT :: (Traversable t, Monoid b) => (a -> b) -> t a -> b
+foldMapT f a = getConst $ traverse (Const . f) a
 
 -- | Let's refactor out the call to @traverse@ as an argument to @foldMapT@.
-foldMapOf ::
-  ((a -> Const r b) -> s -> Const r t)
-  -> (a -> r)
-  -> s
-  -> r
-foldMapOf =
-  error "todo: foldMapOf"
+foldMapOf :: ((a -> Const r b) -> s -> Const r t) -> (a -> r) -> s -> r
+foldMapOf t g s = getConst $ t (Const . g) s
+
 
 -- | Here is @foldMapT@ again, passing @traverse@ to @foldMapOf@.
-foldMapTAgain ::
-  (Traversable t, Monoid b) =>
-  (a -> b)
-  -> t a
-  -> b
-foldMapTAgain =
-  error "todo: foldMapTAgain"
+foldMapTAgain :: (Traversable t, Monoid b) => (a -> b) -> t a -> b
+foldMapTAgain = foldMapOf traverse
 
 -- | Let's create a type-alias for this type of function.
-type Fold s t a b =
-  forall r.
-  Monoid r =>
-  (a -> Const r b)
-  -> s
-  -> Const r t
+type Fold s t a b = forall r. Monoid r => (a -> Const r b) -> s -> Const r t
+
 
 -- | Let's write an inverse to @foldMapOf@ that does the @Const@ wrapping &
 -- unwrapping.
-folds ::
-  ((a -> b) -> s -> t)
-  -> (a -> Const b a)
-  -> s
-  -> Const t s
-folds =
-  error "todo: folds"
+folds :: ((a -> b) -> s -> t) -> (a -> Const b a) -> s -> Const t s
+folds t g s = Const $ t (getConst . g) s
 
-folded ::
-  Foldable f =>
-  Fold (f a) (f a) a a
-folded =
-  error "todo: folded"
+folded :: Foldable f => Fold (f a) (f a) a a
+folded g f_a = Const $ foldMap (getConst . g) f_a
 
 ----
 
@@ -260,7 +234,7 @@ _Left =
   error "todo: _Left"
 
 _Right ::
-  Prism (Either x a) (Either x b) a b 
+  Prism (Either x a) (Either x b) a b
 _Right =
   error "todo: _Right"
 
@@ -366,7 +340,7 @@ fmodify ::
   Lens s t a b
   -> (a -> f b)
   -> s
-  -> f t 
+  -> f t
 fmodify _ _ _ =
   error "todo: fmodify"
 
@@ -670,7 +644,7 @@ setCityAndLocality ::
   (Person, Address) -> (String, Locality) -> (Person, Address)
 setCityAndLocality =
   error "todo: setCityAndLocality"
-  
+
 -- |
 --
 -- >>> getSuburbOrCity (Left maryAddress)
