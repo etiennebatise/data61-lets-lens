@@ -162,17 +162,10 @@ folded g = Const . foldMap (getConst . g)
 ----
 
 -- | @Get@ is like @Fold@, but without the @Monoid@ constraint.
-type Get r s a =
-  (a -> Const r a)
-  -> s
-  -> Const r s
+type Get r s a = (a -> Const r a) -> s -> Const r s
 
-get ::
-  Get a s a
-  -> s
-  -> a
-get =
-  error "todo: get"
+get :: Get a s a -> s -> a
+get g s = getConst $ g Const s
 
 ----
 
