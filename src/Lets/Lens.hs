@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Lets.Lens (
   fmapT
@@ -178,7 +179,6 @@ both g (a1, a2) = (,) <$> g a1 <*> g a2
 
 -- | Traverse the left side of @Either@.
 traverseLeft :: Traversal (Either a x) (Either b x) a b
--- traverseLeft = error "todo: traverseLeft"
 traverseLeft f (Left a) = Left <$> f a
 traverseLeft _ (Right x) = pure $ Right x
 
@@ -196,48 +196,29 @@ type Traversal' a b = Traversal a a b b
 -- @Const r@ is @Functor@.
 --
 -- Consequently, we arrive at our lens derivation:
-type Lens s t a b =
-  forall f.
-  Functor f =>
-  (a -> f b)
-  -> s
-  -> f t
+type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 
 ----
 
 -- | A prism is a less specific type of traversal.
-type Prism s t a b =
-  forall p f.
-  (Choice p, Applicative f) =>
-  p a (f b)
-  -> p s (f t)
+type Prism s t a b = forall p f. (Choice p, Applicative f) => p a (f b) -> p s (f t)
 
-_Left ::
-  Prism (Either a x) (Either b x) a b
-_Left =
-  error "todo: _Left"
+prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
+prism f g p  = dimap g (either pure $ fmap f) $ right p
 
-_Right ::
-  Prism (Either x a) (Either x b) a b
-_Right =
-  error "todo: _Right"
 
-prism ::
-  (b -> t)
-  -> (s -> Either t a)
-  -> Prism s t a b
-prism =
-  error "todo: prism"
+_Left :: Prism (Either a x) (Either b x) a b
+_Left = prism Left (either Right $ Left . pure)
 
-_Just ::
-  Prism (Maybe a) (Maybe b) a b
-_Just =
-  error "todo: _Just"
 
-_Nothing ::
-  Prism (Maybe a) (Maybe a) () ()
-_Nothing =
-  error "todo: _Nothing"
+_Right :: Prism (Either x a) (Either x b) a b
+_Right = prism Right (either (Left . Left) Right)
+
+_Just :: Prism (Maybe a) (Maybe b) a b
+_Just = prism Just $ maybe (Left Nothing) Right
+
+_Nothing :: Prism (Maybe a) (Maybe a) () ()
+_Nothing = prism (const Nothing) $ maybe (Right ()) $ Left . Just
 
 setP ::
   Prism s t a b
