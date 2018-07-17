@@ -212,7 +212,7 @@ _Left = prism Left (either Right $ Left . pure)
 
 
 _Right :: Prism (Either x a) (Either x b) a b
-_Right = prism Right (either (Left . Left) Right)
+_Right = prism Right (left Left)
 
 _Just :: Prism (Maybe a) (Maybe b) a b
 _Just = prism Just $ maybe (Left Nothing) Right
@@ -220,19 +220,11 @@ _Just = prism Just $ maybe (Left Nothing) Right
 _Nothing :: Prism (Maybe a) (Maybe a) () ()
 _Nothing = prism (const Nothing) $ maybe (Right ()) $ Left . Just
 
-setP ::
-  Prism s t a b
-  -> s
-  -> Either t a
-setP _ _ =
-  error "todo: setP"
+setP :: Prism s t a b -> s -> Either t a
+setP p = either Right Left . p Left
 
-getP ::
-  Prism s t a b
-  -> b
-  -> t
-getP _ _ =
-  error "todo: getP"
+getP :: Prism s t a b -> b -> t
+getP p = getIdentity . getTagged . p . Tagged . Identity
 
 type Prism' a b =
   Prism a a b b
