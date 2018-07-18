@@ -81,7 +81,7 @@ import Data.Char(toUpper)
 import Data.Foldable(Foldable(foldMap))
 import Data.Functor((<$>))
 import Data.Map(Map)
-import qualified Data.Map as Map(insert, delete, lookup)
+import qualified Data.Map as Map(insert, delete, lookup, fromList)
 import Data.Monoid(Monoid)
 import qualified Data.Set as Set(Set, insert, delete, member)
 import Data.Traversable(Traversable(traverse))
@@ -308,7 +308,7 @@ fstL f (a, x) = (,x) <$> f a
 sndL :: Lens (x, a) (x, b) a b
 sndL f (x, a) = (x,) <$> f a
 
--- |
+--
 --
 -- To work on `Map k a`:
 --   Map.lookup :: Ord k => k -> Map k a -> Maybe a
@@ -332,12 +332,8 @@ sndL f (x, a) = (x,) <$> f a
 --
 -- >>> set (mapL 33) (Map.fromList (map (\c -> (ord c - 96, c)) ['a'..'d'])) Nothing
 -- fromList [(1,'a'),(2,'b'),(3,'c'),(4,'d')]
-mapL ::
-  Ord k =>
-  k
-  -> Lens (Map k v) (Map k v) (Maybe v) (Maybe v)
-mapL =
-  error "todo: mapL"
+mapL :: Ord k => k -> Lens (Map k v) (Map k v) (Maybe v) (Maybe v)
+mapL k f m = maybe (Map.delete k m) (\v -> Map.insert k v m) <$> f (Map.lookup k m)
 
 -- |
 --
@@ -363,12 +359,8 @@ mapL =
 --
 -- >>> set (setL 33) (Set.fromList [1..5]) False
 -- fromList [1,2,3,4,5]
-setL ::
-  Ord k =>
-  k
-  -> Lens (Set.Set k) (Set.Set k) Bool Bool
-setL =
-  error "todo: setL"
+setL :: Ord k => k -> Lens (Set.Set k) (Set.Set k) Bool Bool
+setL k f s = bool (Set.delete k s) (Set.insert k s) <$> f (Set.member k s)
 
 -- |
 --
@@ -377,20 +369,12 @@ setL =
 --
 -- >>> set (compose fstL sndL) ("abc", (7, "def")) 8
 -- ("abc",(8,"def"))
-compose ::
-  Lens s t a b
-  -> Lens q r s t
-  -> Lens q r a b
-compose _ _ =
-  error "todo: compose"
+compose :: Lens s t a b -> Lens q r s t -> Lens q r a b
+compose l1 l2 = l2 . l1
 
 -- | An alias for @compose@.
-(|.) ::
-  Lens s t a b
-  -> Lens q r s t
-  -> Lens q r a b
-(|.) =
-  compose
+(|.) :: Lens s t a b -> Lens q r s t -> Lens q r a b
+(|.) = compose
 
 infixr 9 |.
 
@@ -401,10 +385,8 @@ infixr 9 |.
 --
 -- >>> set identity 3 4
 -- 4
-identity ::
-  Lens a b a b
-identity =
-  error "todo: identity"
+identity :: Lens a b a b
+identity = id
 
 -- |
 --
@@ -413,12 +395,8 @@ identity =
 --
 -- >>> set (product fstL sndL) (("abc", 3), (4, "def")) ("ghi", "jkl")
 -- (("ghi",3),(4,"jkl"))
-product ::
-  Lens s t a b
-  -> Lens q r c d
-  -> Lens (s, q) (t, r) (a, c) (b, d)
-product _ _ =
-  error "todo: product"
+product :: Lens s t a b -> Lens q r c d -> Lens (s, q) (t, r) (a, c) (b, d)
+product _ _ = error "todo: product"
 
 -- | An alias for @product@.
 (***) ::
