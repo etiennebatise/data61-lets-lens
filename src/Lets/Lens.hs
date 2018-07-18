@@ -1,5 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
+
 
 module Lets.Lens (
   fmapT
@@ -226,8 +228,7 @@ setP p = either Right Left . p Left
 getP :: Prism s t a b -> b -> t
 getP p = getIdentity . getTagged . p . Tagged . Identity
 
-type Prism' a b =
-  Prism a a b b
+type Prism' a b = Prism a a b b
 
 ----
 
@@ -242,22 +243,12 @@ type Prism' a b =
 -- prop> let types = (x :: Int, y :: String) in modify fstL id (x, y) == (x, y)
 --
 -- prop> let types = (x :: Int, y :: String) in modify sndL id (x, y) == (x, y)
-modify ::
-  Lens s t a b
-  -> (a -> b)
-  -> s
-  -> t
-modify _ _ _ =
-  error "todo: modify"
+modify :: Lens s t a b -> (a -> b) -> s -> t
+modify l f = getIdentity . l (Identity . f)
 
 -- | An alias for @modify@.
-(%~) ::
-  Lens s t a b
-  -> (a -> b)
-  -> s
-  -> t
-(%~) =
-  modify
+(%~) :: Lens s t a b -> (a -> b) -> s -> t
+(%~) = modify
 
 infixr 4 %~
 
@@ -272,13 +263,8 @@ infixr 4 %~
 -- prop> let types = (x :: Int, y :: String) in set fstL (x, y) z == (fstL .~ z $ (x, y))
 --
 -- prop> let types = (x :: Int, y :: String) in set sndL (x, y) z == (sndL .~ z $ (x, y))
-(.~) ::
-  Lens s t a b
-  -> b
-  -> s
-  -> t
-(.~) _ _ _ =
-  error "todo: (.~)"
+(.~) :: Lens s t a b -> b -> s -> t
+(.~) l b = getIdentity . l (const . Identity $ b)
 
 infixl 5 .~
 
@@ -292,14 +278,8 @@ infixl 5 .~
 --
 -- >>> fmodify fstL (\n -> bool Nothing (Just (n * 2)) (even n)) (11, "abc")
 -- Nothing
-fmodify ::
-  Functor f =>
-  Lens s t a b
-  -> (a -> f b)
-  -> s
-  -> f t
-fmodify _ _ _ =
-  error "todo: fmodify"
+fmodify :: Functor f => Lens s t a b -> (a -> f b) -> s -> f t
+fmodify = id
 
 -- |
 --
@@ -308,14 +288,9 @@ fmodify _ _ _ =
 --
 -- >>> (fstL |= (+1) $ (3, "abc")) 17
 -- (18,"abc")
-(|=) ::
-  Functor f =>
-  Lens s t a b
-  -> f b
-  -> s
-  -> f t
-(|=) _ _ _ =
-  error "todo: (|=)"
+(|=) :: Functor f => Lens s t a b -> f b -> s -> f t
+(|=) l = l . const
+
 
 infixl 5 |=
 
@@ -323,19 +298,15 @@ infixl 5 |=
 --
 -- >>> modify fstL (*10) (3, "abc")
 -- (30,"abc")
-fstL ::
-  Lens (a, x) (b, x) a b
-fstL =
-  error "todo: fstL"
+fstL :: Lens (a, x) (b, x) a b
+fstL f (a, x) = (,x) <$> f a
 
 -- |
 --
 -- >>> modify sndL (++ "def") (13, "abc")
 -- (13,"abcdef")
-sndL ::
-  Lens (x, a) (x, b) a b
-sndL =
-  error "todo: sndL"
+sndL :: Lens (x, a) (x, b) a b
+sndL f (x, a) = (x,) <$> f a
 
 -- |
 --
