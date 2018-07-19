@@ -396,15 +396,14 @@ identity = id
 -- >>> set (product fstL sndL) (("abc", 3), (4, "def")) ("ghi", "jkl")
 -- (("ghi",3),(4,"jkl"))
 product :: Lens s t a b -> Lens q r c d -> Lens (s, q) (t, r) (a, c) (b, d)
-product _ _ = error "todo: product"
+product l1 l2 f (s, q) = let x = getConst $ l1 Const s
+                             y = getConst $ l2 Const q
+                   in (\(b, d) -> (set l1 s b, set l2 q d)) <$> f (x, y)
+
 
 -- | An alias for @product@.
-(***) ::
-  Lens s t a b
-  -> Lens q r c d
-  -> Lens (s, q) (t, r) (a, c) (b, d)
-(***) =
-  product
+(***) :: Lens s t a b -> Lens q r c d -> Lens (s, q) (t, r) (a, c) (b, d)
+(***) = product
 
 infixr 3 ***
 
