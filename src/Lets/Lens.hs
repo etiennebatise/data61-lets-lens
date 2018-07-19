@@ -420,20 +420,13 @@ infixr 3 ***
 --
 -- >>> set (choice fstL sndL) (Right ("abc", 7)) 8
 -- Right ("abc",8)
-choice ::
-  Lens s t a b
-  -> Lens q r a b
-  -> Lens (Either s q) (Either t r) a b
-choice _ _ =
-  error "todo: choice"
+choice :: Lens s t a b -> Lens q r a b -> Lens (Either s q) (Either t r) a b
+choice l1 l2 f = either (fmap Left . l1 f) (fmap Right . l2 f)
+
 
 -- | An alias for @choice@.
-(|||) ::
-  Lens s t a b
-  -> Lens q r a b
-  -> Lens (Either s q) (Either t r) a b
-(|||) =
-  choice
+(|||) :: Lens s t a b -> Lens q r a b -> Lens (Either s q) (Either t r) a b
+(|||) = choice
 
 infixr 2 |||
 
