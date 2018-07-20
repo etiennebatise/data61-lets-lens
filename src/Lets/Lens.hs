@@ -1,5 +1,5 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TupleSections #-}
 
 
@@ -76,19 +76,26 @@ module Lets.Lens (
 , intOrLengthEven
 ) where
 
-import Control.Applicative(Applicative((<*>), pure))
-import Data.Char(toUpper)
-import Data.Foldable(Foldable(foldMap))
-import Data.Functor((<$>))
-import Data.Map(Map)
-import qualified Data.Map as Map(insert, delete, lookup, fromList)
-import Data.Monoid(Monoid)
-import qualified Data.Set as Set(Set, insert, delete, member)
-import Data.Traversable(Traversable(traverse))
-import Lets.Data(AlongsideLeft(AlongsideLeft, getAlongsideLeft), AlongsideRight(AlongsideRight, getAlongsideRight), Identity(Identity, getIdentity), Const(Const, getConst), Tagged(Tagged, getTagged), IntOr(IntOrIs, IntOrIsNot), IntAnd(IntAnd), Person(Person), Locality(Locality), Address(Address), bool)
-import Lets.Choice(Choice(left, right))
-import Lets.Profunctor(Profunctor(dimap))
-import Prelude hiding (product)
+import           Control.Applicative (Applicative (pure, (<*>)))
+import           Data.Char (toUpper)
+import           Data.Foldable (Foldable (foldMap))
+import           Data.Functor ((<$>))
+import           Data.Map (Map)
+import qualified Data.Map as Map (delete, fromList, insert, lookup)
+import           Data.Monoid (Monoid)
+import qualified Data.Set as Set (Set, delete, insert, member)
+import           Data.Traversable (Traversable (traverse))
+import           Lets.Choice (Choice (left, right))
+import           Lets.Data           (Address (Address), AlongsideLeft (AlongsideLeft, getAlongsideLeft),
+                                      AlongsideRight (AlongsideRight, getAlongsideRight),
+                                      Const (Const, getConst),
+                                      Identity (Identity, getIdentity),
+                                      IntAnd (IntAnd),
+                                      IntOr (IntOrIs, IntOrIsNot),
+                                      Locality (Locality), Person (Person),
+                                      Tagged (Tagged, getTagged), bool, fred, mary)
+import           Lets.Profunctor (Profunctor (dimap))
+import           Prelude hiding (product)
 
 -- $setup
 -- >>> import qualified Data.Map as Map(fromList)
@@ -181,13 +188,13 @@ both g (a1, a2) = (,) <$> g a1 <*> g a2
 
 -- | Traverse the left side of @Either@.
 traverseLeft :: Traversal (Either a x) (Either b x) a b
-traverseLeft f (Left a) = Left <$> f a
+traverseLeft f (Left a)  = Left <$> f a
 traverseLeft _ (Right x) = pure $ Right x
 
 -- | Traverse the right side of @Either@.
 traverseRight :: Traversal (Either x a) (Either x b) a b
 traverseRight f (Right a) = Right <$> f a
-traverseRight _ (Left x) = pure $ Left x
+traverseRight _ (Left x)  = pure $ Left x
 
 type Traversal' a b = Traversal a a b b
 
@@ -432,64 +439,46 @@ infixr 2 |||
 
 ----
 
-type Lens' a b =
-  Lens a a b b
+-- type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 
-cityL ::
-  Lens' Locality String
-cityL p (Locality c t y) =
-  fmap (\c' -> Locality c' t y) (p c)
+-- type Lens' a b = Lens a a b forall f. Functor f => (b -> f b) -> a -> f a
+-- streetL :: Lens' Address String
+-- (String -> f String) -> Address -> f Address
+type Lens' a b = Lens a a b b
 
-stateL ::
-  Lens' Locality String
-stateL p (Locality c t y) =
-  fmap (\t' -> Locality c t' y) (p t)
+cityL :: Lens' Locality String
+cityL p (Locality c t y) = fmap (\c' -> Locality c' t y) (p c)
 
-countryL ::
-  Lens' Locality String
-countryL p (Locality c t y) =
-  fmap (\y' -> Locality c t y') (p y)
+stateL :: Lens' Locality String
+stateL p (Locality c t y) = fmap (\t' -> Locality c t' y) (p t)
 
-streetL ::
-  Lens' Address String
-streetL p (Address t s l) =
-  fmap (\t' -> Address t' s l) (p t)
+countryL :: Lens' Locality String
+countryL p (Locality c t y) = fmap (\y' -> Locality c t y') (p y)
 
-suburbL ::
-  Lens' Address String
-suburbL p (Address t s l) =
-  fmap (\s' -> Address t s' l) (p s)
+streetL :: Lens' Address String
+streetL p (Address t s l) = fmap (\t' -> Address t' s l) (p t)
 
-localityL ::
-  Lens' Address Locality
-localityL p (Address t s l) =
-  fmap (\l' -> Address t s l') (p l)
+suburbL :: Lens' Address String
+suburbL p (Address t s l) = fmap (\s' -> Address t s' l) (p s)
 
-ageL ::
-  Lens' Person Int
-ageL p (Person a n d) =
-  fmap (\a' -> Person a' n d) (p a)
+localityL :: Lens' Address Locality
+localityL p (Address t s l) = fmap (\l' -> Address t s l') (p l)
 
-nameL ::
-  Lens' Person String
-nameL p (Person a n d) =
-  fmap (\n' -> Person a n' d) (p n)
+ageL :: Lens' Person Int
+ageL p (Person a n d) = fmap (\a' -> Person a' n d) (p a)
 
-addressL ::
-  Lens' Person Address
-addressL p (Person a n d) =
-  fmap (\d' -> Person a n d') (p d)
+nameL :: Lens' Person String
+nameL p (Person a n d) = fmap (\n' -> Person a n' d) (p n)
 
-intAndIntL ::
-  Lens' (IntAnd a) Int
-intAndIntL p (IntAnd n a) =
-  fmap (\n' -> IntAnd n' a) (p n)
+addressL :: Lens' Person Address
+addressL p (Person a n d) = fmap (\d' -> Person a n d') (p d)
+
+intAndIntL :: Lens' (IntAnd a) Int
+intAndIntL p (IntAnd n a) = fmap (\n' -> IntAnd n' a) (p n)
 
 -- lens for polymorphic update
-intAndL ::
-  Lens (IntAnd a) (IntAnd b) a b
-intAndL p (IntAnd n a) =
-  fmap (\a' -> IntAnd n a') (p a)
+intAndL :: Lens (IntAnd a) (IntAnd b) a b
+intAndL p (IntAnd n a) = fmap (\a' -> IntAnd n a') (p a)
 
 -- |
 --
@@ -498,11 +487,8 @@ intAndL p (IntAnd n a) =
 --
 -- >>> getSuburb mary
 -- "Maryland"
-getSuburb ::
-  Person
-  -> String
-getSuburb =
-  error "todo: getSuburb"
+getSuburb :: Person -> String
+getSuburb = get $ addressL . suburbL
 
 -- |
 --
@@ -511,12 +497,8 @@ getSuburb =
 --
 -- >>> setStreet mary "Some Other St"
 -- Person 28 "Mary" (Address "Some Other St" "Maryland" (Locality "Mary Mary" "Western Mary" "Maristan"))
-setStreet ::
-  Person
-  -> String
-  -> Person
-setStreet =
-  error "todo: setStreet"
+setStreet :: Person -> String -> Person
+setStreet p = set _ p 
 
 -- |
 --
